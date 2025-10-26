@@ -1,10 +1,10 @@
 {
-  "name": "server",
+  "name": "ai-resume-server",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "init-db": "node init-db.js"
   },
   "dependencies": {
     "axios": "^1.12.2",
@@ -13,7 +13,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

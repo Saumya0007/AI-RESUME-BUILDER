@@ -5,21 +5,30 @@ import axios from "axios";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import bcrypt from "bcryptjs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 const app = express();
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+
+// Allow frontend origin to be configurable (set CLIENT_URL in Vercel env)
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use(express.json());
 
-// ✅ Initialize SQLite
+// Helper to open a file-backed SQLite DB located next to this file.
 async function openDb() {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const dbPath = path.join(__dirname, 'database.db');
+
   return open({
-    filename: "./database.db",
+    filename: dbPath,
     driver: sqlite3.Database,
   });
 }
 
-// ✅ Setup database if not exists
+// Ensure DB and table exist
 (async () => {
   const db = await openDb();
   await db.exec(`
@@ -30,19 +39,24 @@ async function openDb() {
       password TEXT NOT NULL
     )
   `);
-  console.log("✅ SQLite database ready!");
+  console.log("✅ SQLite database ready at", path.join(process.cwd(), 'server', 'database.db'));
+  await db.close();
 })();
 
-// ✅ Signup route
+// Signup route
 app.post("/api/auth/signup", async (req, res) => {
   const { name, email, password } = req.body;
   try {
     const db = await openDb();
     const existing = await db.get("SELECT * FROM users WHERE email = ?", [email]);
-    if (existing) return res.status(400).json({ message: "User already exists" });
+    if (existing) {
+      await db.close();
+      return res.status(400).json({ message: "User already exists" });
+    }
 
     const hashed = await bcrypt.hash(password, 10);
     await db.run("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, hashed]);
+    await db.close();
     res.json({ message: "Signup successful!" });
   } catch (err) {
     console.error("Signup error:", err);
@@ -50,12 +64,13 @@ app.post("/api/auth/signup", async (req, res) => {
   }
 });
 
-// ✅ Login route
+// Login route
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body;
   try {
     const db = await openDb();
     const user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
+    await db.close();
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const valid = await bcrypt.compare(password, user.password);
@@ -68,7 +83,7 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// ✅ Resume generator using Pollinations (free)
+// Resume generator using Pollinations (free)
 app.post("/generate-resume", async (req, res) => {
   const { userData } = req.body;
   if (!userData) return res.status(400).json({ error: "Missing user data" });
@@ -77,7 +92,7 @@ app.post("/generate-resume", async (req, res) => {
     const response = await axios.post(
       "https://text.pollinations.ai/openai",
       {
-        model: "mistral", // ✅ free model
+        model: "mistral",
         messages: [
           { role: "system", content: "You are a professional resume builder AI." },
           {
@@ -110,4 +125,3 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
