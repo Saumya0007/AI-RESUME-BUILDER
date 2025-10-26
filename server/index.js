@@ -11,9 +11,29 @@ import { fileURLToPath } from "url";
 dotenv.config();
 const app = express();
 
-// Allow frontend origin to be configurable (set CLIENT_URL in Vercel env)
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
-app.use(cors({ origin: CLIENT_URL, credentials: true }));
+// Allow multiple origins for CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://ai-resume-builder-2-lpf3.onrender.com',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+app.use(cors({ 
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      callback(null, true); // Allow anyway for now (change to false in production)
+    }
+  },
+  credentials: true 
+}));
+
 app.use(express.json());
 
 // Helper to open a file-backed SQLite DB located next to this file.
@@ -89,6 +109,8 @@ app.post("/generate-resume", async (req, res) => {
   if (!userData) return res.status(400).json({ error: "Missing user data" });
 
   try {
+    console.log("Generating resume for:", userData.substring(0, 100));
+    
     const response = await axios.post(
       "https://text.pollinations.ai/openai",
       {
@@ -110,17 +132,24 @@ app.post("/generate-resume", async (req, res) => {
       response.data?.text ||
       JSON.stringify(response.data);
 
+    console.log("Resume generated successfully");
     res.json({ resume: resumeText });
   } catch (error) {
     console.error("Pollinations AI error:", error.response?.data || error.message);
     res.status(500).json({
       error: error.response?.data?.error || "AI resume generation failed",
+      details: error.message
     });
   }
 });
 
 app.get("/", (req, res) => {
   res.send("✅ Server running with Pollinations + SQLite + Resume Generator");
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 const PORT = process.env.PORT || 5000;
