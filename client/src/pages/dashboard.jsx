@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../utils/api";  // Changed
 
 export default function Dashboard() {
   const [formData, setFormData] = useState({
@@ -35,7 +35,7 @@ Projects: ${formData.projects}
     `;
 
     try {
-      const res = await axios.post("http://localhost:5000/generate-resume", {
+      const res = await api.post("/generate-resume", {  // Changed
         userData,
       });
 
