@@ -22,3 +22,28 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Python
+venv/
+backend-ai/venv/
+__pycache__/
+*.pyc
+
+# Secrets
+.env
+
+# ChromaDB
+backend-ai/chroma_db/
+
+# Uploads
+backend-ai/app/uploads/
+venv/
+backend-ai/venv/
+
+__pycache__/
+*.pyc
+
+backend-ai/chroma_db/
+backend-ai/app/uploads/
+
+.env
+backend-ai/.env

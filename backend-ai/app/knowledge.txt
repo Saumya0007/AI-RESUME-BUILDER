@@ -1,0 +1,40 @@
+Backend Developer Skills:
+- Node.js
+- Express.js
+- FastAPI
+- Django
+- PostgreSQL
+- MongoDB
+- Redis
+- Docker
+- Kubernetes
+- AWS
+- CI/CD
+- REST APIs
+- JWT Authentication
+- Microservices
+- System Design
+- WebSockets
+- GraphQL
+
+Strong Projects:
+- Real-time Chat App
+- AI Resume Analyzer
+- RAG Chatbot
+- E-commerce Backend
+- URL Shortener
+- DevOps CI/CD Pipeline
+- Distributed File System
+- AI Interview Assistant
+
+Interview Expectations:
+- DSA
+- OOPs
+- DBMS
+- OS
+- CN
+- Backend Architecture
+- API Security
+- Scalability
+- Caching
+- Deployment
